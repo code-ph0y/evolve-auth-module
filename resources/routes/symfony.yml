@@ -1,0 +1,13 @@
+AuthModule_Login:
+    pattern: /login
+    defaults: { _controller: "AuthModule:Auth:login"}
+
+AuthModule_Logout:
+    pattern: /logout
+    defaults: { _controller: "AuthModule:Auth:logout"}
+
+AuthModule_Login_Check:
+    pattern: /logincheck
+    defaults: { _controller: "AuthModule:Auth:logincheck"}
+    requirements:
+        _method: POST
