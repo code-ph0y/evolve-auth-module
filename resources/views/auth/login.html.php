@@ -9,6 +9,7 @@
         }
     </style>
 <?php $view['slots']->stop(); ?>
+
 <div class="login-panel">
     <div>
         <h1>User Login</h1>

@@ -15,13 +15,8 @@ class Auth extends SharedController
 
     public function loginAction()
     {
-        /**
-            @todo - Get the redirects from the Config
-            @idea - Look into creating a function getRedirectRoute() ?
-        */
-
         if ($this->getService('auth.security')->isLoggedIn()) {
-            return $this->redirectToRoute('Homepage');
+            return $this->redirectToRoute($this->getService('auth.security')->getRedirectRoute());
         }
 
         return $this->render('AuthModule:auth:login.html.php');
@@ -37,7 +32,8 @@ class Auth extends SharedController
         return $this->render('AuthModule:auth:forgotpwenter.html.php');
     }
 
-    public function logoutAction() {
+    public function logoutAction()
+    {
         $this->getService('user.security')->logout();
         return $this->redirectToRoute('Homepage');
     }
@@ -51,22 +47,21 @@ class Auth extends SharedController
         $userStorage  = $this->getUserStorage();
 
         // Check for missing fields, or fields being empty.
-        foreach($requiredKeys as $field) {
-            if(!isset($post[$field]) || empty($post[$field])) {
+        foreach ($requiredKeys as $field) {
+            if (!isset($post[$field]) || empty($post[$field])) {
                 $missingFields[] = $field;
             }
         }
 
         // If any fields were missing, inform the client
-        if(!empty($missingFields)) {
+        if (!empty($missingFields)) {
             $errors[] = 'Missing fields';
             $this->setFlash('error', 'Missing fields');
             return $this->render('AuthModule:auth:login.html.php', compact('errors'));
         }
 
         // Lets try to authenticate the user
-		if(!$userStorage->checkAuth($post['userEmail'], $post['userPassword'], $this->getConfigSalt()))
-        {
+        if (!$userStorage->checkAuth($post['userEmail'], $post['userPassword'], $this->getConfigSalt())) {
             $errors[] = 'Login Invalid';
             $this->setFlash('error', 'Login Invalid');
             return $this->render('AuthModule:auth:login.html.php', compact('errors'));
@@ -76,7 +71,7 @@ class Auth extends SharedController
         $userEntity = $userStorage->getByEmail($post['userEmail']);
 
         // Check if user is activated
-        if(!$this->getUserActivationStorage()->isActivated($userEntity->getID())) {
+        if (!$this->getUserActivationStorage()->isActivated($userEntity->getID())) {
             $errors[] = 'Account not activated';
             $this->setFlash('error', 'Account not activated');
             return $this->render('AuthModule:auth:login.html.php', compact('errors'));
@@ -106,14 +101,14 @@ class Auth extends SharedController
         $us       = $this->getUserStorage();
 
         // Check for missing field
-        if(empty($email)) {
+        if (empty($email)) {
             $response['status'] = 'E_MISSING_FIELD';
             $response['error_value'] = 'email';
             $this->renderJsonResponse($response);
         }
 
         // Check if user record does not exist
-        if(!$us->existsByEmail($email)) {
+        if (!$us->existsByEmail($email)) {
             $response['status'] = 'E_MISSING_RECORD';
             $this->renderJsonResponse($response);
         }
@@ -143,7 +138,7 @@ class Auth extends SharedController
         $fs = $this->getUserForgotStorage();
 
         // If the user has not activated their token before, activate it!
-        if(!$fs->isUserActivatedByToken($token)) {
+        if (!$fs->isUserActivatedByToken($token)) {
 
             $fs->useToken($token);
 
@@ -160,41 +155,42 @@ class Auth extends SharedController
         $this->redirectToRoute('User_Signup');
     }
 
-    public function forgotpwsaveAction() {
+    public function forgotpwsaveAction()
+    {
 
         $post          = $this->post();
         $requiredKeys  = array('password', 'confirm_password', 'csrf');
 
         // Check for missing fields, or fields being empty.
-        foreach($requiredKeys as $field) {
-            if(!isset($post[$field]) || empty($post[$field])) {
+        foreach ($requiredKeys as $field) {
+            if (!isset($post[$field]) || empty($post[$field])) {
                 $missingFields[] = $field;
             }
         }
 
         // If any fields were missing, inform the client
-        if(!empty($missingFields)) {
+        if (!empty($missingFields)) {
             $response['status']       = 'E_MISSING_FIELD';
             $response['error_value']  = implode(',', $missingFields);
             $this->renderJsonResponse($response);
         }
 
         // Check if both passwords match
-        if($post['password'] !== $post['confirm_password']) {
+        if ($post['password'] !== $post['confirm_password']) {
             $response['status'] = 'E_PASSWORD_MISMATCH';
             $this->renderJsonResponse($response);
         }
 
         // Check for csrf protection
         $csrf = $this->session('forgotpw_csrf');
-        if(empty($csrf) || $csrf !== $post['csrf']) {
+        if (empty($csrf) || $csrf !== $post['csrf']) {
             $response['status'] = 'E_INVALID_CSRF';
             $this->renderJsonResponse($response);
         }
 
         // Get the user record out of the session token
         $token = $this->session('forgotpw_token');
-        if(empty($token)) {
+        if (empty($token)) {
             $response['status'] = 'E_MISSING_TOKEN';
             $this->renderJsonResponse($response);
         }
@@ -267,12 +263,12 @@ class Auth extends SharedController
       * @param string                  $activationCode
       * @return void
       */
-     protected function sendForgotPWEmail($toUser, $forgotToken) {
-
+     protected function sendForgotPWEmail($toUser, $forgotToken)
+     {
          // User entity preparation
          $fromUser = new UserEntity($this->getEmailConfig());
-         if(is_array($toUser)) {
-             $toUser   = new UserEntity($toUser);
+         if (is_array($toUser)) {
+             $toUser = new UserEntity($toUser);
          }
 
          // Generate the activation link from the route key
@@ -285,7 +281,5 @@ class Auth extends SharedController
          $helper = new \AuthModule\Classes\Email();
          $config = $this->getConfig();
          $helper->sendEmail($fromUser, $toUser, $config['forgotEmail']['subject'], $emailContent);
-
      }
-
 }

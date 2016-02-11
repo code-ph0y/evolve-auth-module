@@ -28,6 +28,11 @@ class Security
         $this->config = $config;
     }
 
+    public function getConfig()
+    {
+        return $this->config;
+    }
+
     public function isLoggedIn()
     {
         return $this->getUser() !== null;
@@ -48,8 +53,26 @@ class Security
         if ($this->user !== null) {
             return $this->user;
         }
+
         $this->user = $this->session->get('ppiAuthUser');
         return $this->user;
+    }
+
+    public function getRedirectRoute()
+    {
+        $redirectRoute = 'Guest';
+        if ($this->isLoggedIn()) {
+            $config = $this->getConfig();
+            $user = $this->getUser();
+            $level_name = $user->getLevelName();
+
+            if (isset($config['redirectRoutes'][$level_name])) {
+                $redirectRoute = $config['redirectRoutes'][$level_name];
+            } else {
+                throw new Exception('Redirect route not found');
+            }
+        }
+        return $redirectRoute;
     }
 
     public function checkAuth($email, $password)
