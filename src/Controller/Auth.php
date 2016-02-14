@@ -10,25 +10,33 @@ class Auth extends SharedController
 
     public function signupAction()
     {
+        // Check to see if user is logged in
+        $this->loggedInCheck();
+
         return $this->render('AuthModule:auth:signup.html.php');
     }
 
     public function loginAction()
     {
-        if ($this->getService('auth.security')->isLoggedIn()) {
-            return $this->redirectToRoute($this->getService('auth.security')->getRedirectRoute());
-        }
+        // Check to see if user is logged in
+        $this->loggedInCheck();
 
         return $this->render('AuthModule:auth:login.html.php');
     }
 
     public function forgotpwAction()
     {
+        // Check to see if user is logged in
+        $this->loggedInCheck();
+
         return $this->render('AuthModule:auth:signup.html.php');
     }
 
     public function forgotpwenterAction()
     {
+        // Check to see if user is logged in
+        $this->loggedInCheck();
+
         return $this->render('AuthModule:auth:forgotpwenter.html.php');
     }
 
@@ -40,6 +48,8 @@ class Auth extends SharedController
 
     public function logincheckAction()
     {
+        // Check to see if user is logged in
+        $this->loggedInCheck();
 
         $errors       = $missingFields = array();
         $post         = $this->post();
@@ -95,6 +105,8 @@ class Auth extends SharedController
 
     public function forgotpwsendAction()
     {
+        // Check to see if user is logged in
+        $this->loggedInCheck();
 
         $response = array('status' => 'E_UNKNOWN');
         $email    = $this->post('email');
@@ -133,6 +145,9 @@ class Auth extends SharedController
 
     public function forgotpwcheckAction()
     {
+        // Check to see if user is logged in
+        $this->loggedInCheck();
+
 
         $token = $this->getRouteParam('token');
         $fs = $this->getUserForgotStorage();
@@ -157,6 +172,8 @@ class Auth extends SharedController
 
     public function forgotpwsaveAction()
     {
+        // Check to see if user is logged in
+        $this->loggedInCheck();
 
         $post          = $this->post();
         $requiredKeys  = array('password', 'confirm_password', 'csrf');
@@ -201,7 +218,10 @@ class Auth extends SharedController
 
         // Update the user's password
         $this->getUserStorage()->updatePassword(
-            $userEntity->getID(), $userEntity->getSalt(), $this->getConfigSalt(), $post['password']
+            $userEntity->getID(),
+            $userEntity->getSalt(),
+            $this->getConfigSalt(),
+            $post['password']
         );
 
         // Wipe session values clean
@@ -218,68 +238,76 @@ class Auth extends SharedController
     /**
       * Activation action. Active the user's account
       */
-     public function activateAction() {
+    public function activateAction()
+    {
+        // Check to see if user is logged in
+        $this->loggedInCheck();
 
-         $token = $this->getRouteParam('token');
-         $uas = $this->getUserActivationStorage();
+        $token = $this->getRouteParam('token');
+        $uas = $this->getUserActivationStorage();
 
-         // If the user has not activated their token before, activate it!
-         if(!$uas->isUserActivatedByToken($token)) {
-             $uas->activateUser($token);
-         }
+        // If the user has not activated their token before, activate it!
+        if (!$uas->isUserActivatedByToken($token)) {
+            $uas->activateUser($token);
+        }
 
-         return $this->render('AuthModule:auth:activate.html.php', compact('csrf'));
+        return $this->render('AuthModule:auth:activate.html.php', compact('csrf'));
+    }
 
-     }
+    /**
+    * Send the user's activation email to them.
+    *
+    * @param \AuthModule\Entity\User $toUser
+    * @param string $activationCode
+    */
+    protected function sendActivationEmail($toUser, $activationCode)
+    {
+        // Check to see if user is logged in
+        $this->loggedInCheck();
 
-     /**
-      * Send the user's activation email to them.
-      *
-      * @param \User\Entity\User $toUser
-      * @param string            $activationCode
-      */
-     protected function sendActivationEmail($toUser, $activationCode) {
+        $fromUser = new UserEntity($this->getEmailConfig());
+        $toUser   = new UserEntity($toUser);
 
-         $fromUser = new UserEntity($this->getEmailConfig());
-         $toUser = new UserEntity($toUser);
+        // Generate the activation link from the route key
+        $activationLink = $this->generateUrl('User_Activate', array('token' => $activationCode), true);
 
-         // Generate the activation link from the route key
-         $activationLink = $this->generateUrl('User_Activate', array('token' => $activationCode), true);
+        // Get the activation email content, it's in a view file.
+        $emailContent = $this->render('AuthModule:auth:signupemail.html.php', compact('toUser', 'activationLink'));
 
-         // Get the activation email content, it's in a view file.
-         $emailContent = $this->render('AuthModule:auth:signupemail.html.php', compact('toUser', 'activationLink'));
+        // Send the activation email to the user
+        $helper = new \AuthModule\Classes\Email();
+        $config = $this->getConfig();
+        $helper->sendEmail($fromUser, $toUser, $config['signupEmail']['subject'], $emailContent);
 
-         // Send the activation email to the user
-         $helper = new \AuthModule\Classes\Email();
-         $config = $this->getConfig();
-         $helper->sendEmail($fromUser, $toUser, $config['signupEmail']['subject'], $emailContent);
+    }
 
-     }
+    /**
+    * Send the user's forgotpw email to them.
+    *
+    * @param \AuthModule\Entity\User|array $toUser
+    * @param string $activationCode
+    * @return void
+    */
+    protected function sendForgotPWEmail($toUser, $forgotToken)
+    {
+        // Check to see if user is logged in
+        $this->loggedInCheck();
 
-     /**
-      * Send the user's forgotpw email to them.
-      *
-      * @param \User\Entity\User|array $toUser
-      * @param string                  $activationCode
-      * @return void
-      */
-     protected function sendForgotPWEmail($toUser, $forgotToken)
-     {
-         // User entity preparation
-         $fromUser = new UserEntity($this->getEmailConfig());
-         if (is_array($toUser)) {
-             $toUser = new UserEntity($toUser);
-         }
+        // User entity preparation
+        $fromUser = new UserEntity($this->getEmailConfig());
+        if (is_array($toUser)) {
+            $toUser = new UserEntity($toUser);
+        }
 
-         // Generate the activation link from the route key
-         $forgotLink = $this->generateUrl('User_Forgot_Password_Check', array('token' => $forgotToken), true);
+        // Generate the activation link from the route key
+        $forgotLink = $this->generateUrl('User_Forgot_Password_Check', array('token' => $forgotToken), true);
 
-         // Get the activation email content, it's in a view file.
-         $emailContent = $this->render('AuthModule:auth:forgotpwemail.html.php', compact('toUser', 'forgotLink'));
+        // Get the activation email content, it's in a view file.
+        $emailContent = $this->render('AuthModule:auth:forgotpwemail.html.php', compact('toUser', 'forgotLink'));
 
-         // Send the activation email to the user
-         $helper = new \AuthModule\Classes\Email();
-         $config = $this->getConfig();
-         $helper->sendEmail($fromUser, $toUser, $config['forgotEmail']['subject'], $emailContent);
-     }
+        // Send the activation email to the user
+        $helper = new \AuthModule\Classes\Email();
+        $config = $this->getConfig();
+        $helper->sendEmail($fromUser, $toUser, $config['forgotEmail']['subject'], $emailContent);
+    }
 }
