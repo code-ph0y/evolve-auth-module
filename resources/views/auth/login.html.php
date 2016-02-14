@@ -1,13 +1,7 @@
 <?php $view->extend('::base.html.php'); ?>
 
 <?php $view['slots']->start('include_css') ?>
-    <link rel="stylesheet" href="<?php echo $view['assets']->getUrl('user/css/login.css') ?>"/>
-    <style>
-        .login-panel {
-            margin-left: 23.333%;
-            width: 580px;
-        }
-    </style>
+    <link rel="stylesheet" href="<?php echo $view['assets']->getUrl('auth_module/css/login.css'); ?>"/>
 <?php $view['slots']->stop(); ?>
 
 <div class="login-panel">

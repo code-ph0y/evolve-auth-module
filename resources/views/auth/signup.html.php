@@ -1,23 +1,13 @@
 <?php $view->extend('::base.html.php'); ?>
 
 <?php $view['slots']->start('include_css') ?>
-    <link rel="stylesheet" href="<?php echo $view['assets']->getUrl('user/css/signup.css') ?>" />
-    <style>
-        .sign-up-panel {
-            margin-left: 23.333%;
-            width: 580px;
-        }
-
-        .form-actions {
-            margin-top: 10px;
-        }
-    </style>
+    <link rel="stylesheet" href="<?php echo $view['assets']->getUrl('auth_module/css/signup.css') ?>" />
 <?php $view['slots']->stop(); ?>
 
 <?php $view['slots']->start('include_js_body') ?>
-    <script src="<?php echo $view['assets']->getUrl('js/libs/jquery.validationEngine-en.js') ?>"></script>
-    <script src="<?php echo $view['assets']->getUrl('js/libs/jquery.validationEngine.js') ?>"></script>
-    <script src="<?php echo $view['assets']->getUrl('user/js/signup.js') ?>"></script>
+    <script src="<?php echo $view['assets']->getUrl('auth_module/js/jquery.validationEngine-en.js') ?>"></script>
+    <script src="<?php echo $view['assets']->getUrl('auth_module/js/jquery.validationEngine.js') ?>"></script>
+    <script src="<?php echo $view['assets']->getUrl('auth_module/js/signup.js') ?>"></script>
 <?php $view['slots']->stop(); ?>
 
 <section class="sign-up-panel clearfix">
