@@ -3,6 +3,7 @@ namespace AuthModule\Controller;
 
 use AuthModule\Controller\Shared as SharedController;
 use AuthModule\Entity\User as UserEntity;
+use PPI\Framework\Http\Request as Request;
 
 class Auth extends SharedController
 {
@@ -46,54 +47,42 @@ class Auth extends SharedController
         return $this->redirectToRoute('Homepage');
     }
 
-    public function logincheckAction()
+    public function logincheckAction(Request $request, $userEmail, $userPassword)
     {
         // Check to see if user is logged in
         $this->loggedInCheck();
 
-        $errors       = $missingFields = array();
-        $post         = $this->post();
-        $requiredKeys = array('userEmail', 'userPassword');
-        $userStorage  = $this->getUserStorage();
+        // Get security helper
+        $security = $this->getService('auth.security');
 
-        // Check for missing fields, or fields being empty.
-        foreach ($requiredKeys as $field) {
-            if (!isset($post[$field]) || empty($post[$field])) {
-                $missingFields[] = $field;
-            }
-        }
+        $errors   = array();
 
-        // If any fields were missing, inform the client
-        if (!empty($missingFields)) {
-            $errors[] = 'Missing fields';
-            $this->setFlash('error', 'Missing fields');
+        if (trim($userEmail) == '' || trim($userPassword) == '') {
+            $errors[] = 'Email and Password are required fields';
             return $this->render('AuthModule:auth:login.html.php', compact('errors'));
         }
 
         // Lets try to authenticate the user
-        if (!$userStorage->checkAuth($post['userEmail'], $post['userPassword'], $this->getConfigSalt())) {
+        if (!$security->checkAuth($userEmail, $userPassword)) {
             $errors[] = 'Login Invalid';
-            $this->setFlash('error', 'Login Invalid');
             return $this->render('AuthModule:auth:login.html.php', compact('errors'));
         }
 
         // Get user record
-        $userEntity = $userStorage->getByEmail($post['userEmail']);
+        $userEntity = $this->getService('auth.user.storage')->getByEmail($userEmail);
 
         // Check if user is activated
-        if (!$this->getUserActivationStorage()->isActivated($userEntity->getID())) {
-            $errors[] = 'Account not activated';
-            $this->setFlash('error', 'Account not activated');
+        if (!$this->getService('auth.user.activation.storage')->isActivated($userEntity->getId())) {
+            $errors[] = 'Account not activated. Please check your email for activation instructions';
             return $this->render('AuthModule:auth:login.html.php', compact('errors'));
         }
 
         // Lets populate the session with the user's auth information
-        $this->setAuthData(new UserEntity($userStorage->findByEmail($post['userEmail'])));
+        $security->login(new UserEntity($userEntity));
 
-        // Login Successful. \o/
+        // Login Successful.
         $this->setFlash('success', 'Login Successful');
-        $this->redirectToRoute('Homepage');
-
+        return $this->redirectToRoute($this->getService('auth.security')->getRedirectRoute());
     }
 
     protected function renderJsonResponse($response)
