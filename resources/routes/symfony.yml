@@ -11,3 +11,37 @@ AuthModule_Login_Check:
     defaults: { _controller: "AuthModule:Auth:logincheck"}
     requirements:
         _method: POST
+
+AuthModule_Sign_Up:
+    pattern: /signup
+    defaults: { _controller: "AuthModule:Auth:signup"}
+
+AuthModule_Signup_Save:
+    pattern: /signupsave
+    defaults: { _controller: "AuthModule:Auth:signupsave"}
+    requirements:
+        _method: POST
+
+AuthModule_Activate:
+    pattern: /activate/{token}
+    defaults: { _controller: "AuthModule:Auth:activate"}
+
+AuthModule_Forgot_Password:
+    pattern: /forgotpw
+    defaults: { _controller: "AuthModule:Auth:forgotpw"}
+
+AuthModule_Forgot_Password_Send:
+    pattern: /forgotpwsend
+    defaults: { _controller: "AuthModule:Auth:forgotpwsend"}
+    requirements:
+        _method: POST
+
+AuthModule_Forgot_Password_Check:
+    pattern: /forgotpwcheck/{token}
+    defaults: { _controller: "AuthModule:Auth:forgotpwcheck"}
+
+AuthModule_Forgot_Password_Save:
+    pattern: /forgotpwsave
+    defaults: { _controller: "AuthModule:Auth:forgotpwsave"}
+    requirements:
+        _method: POST

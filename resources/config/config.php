@@ -9,8 +9,14 @@ $config['redirectRoutes'] = array(
     'Developer'     => 'Homepage'
 );
 
-# ---- Auth ----
+# ---- Security ----
 # Application Salt Value
-$config['authSalt'] = 'AuThS41t';
+$config['authSalt']   = 'AuThS41t';
+$config['encryption'] = 'md5';
+
+# ---- Application Details ----
+$config['registeringAt'] = 'My Application';
+$config['teamName']      = 'My Team';
+$config['emailFrom']     = 'noreply@myapplication.com';
 
 return $config;
