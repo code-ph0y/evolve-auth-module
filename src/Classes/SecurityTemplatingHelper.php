@@ -3,7 +3,7 @@ namespace AuthModule\Classes;
 
 use Symfony\Component\Templating\Helper\Helper as BaseHelper;
 
-class UserSecurityTemplatingHelper extends BaseHelper
+class SecurityTemplatingHelper extends BaseHelper
 {
     protected $security;
 

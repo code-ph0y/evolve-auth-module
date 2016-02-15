@@ -137,7 +137,6 @@ class Auth extends SharedController
         // Check to see if user is logged in
         $this->loggedInCheck();
 
-
         $token = $this->getRouteParam('token');
         $fs = $this->getUserForgotStorage();
 
