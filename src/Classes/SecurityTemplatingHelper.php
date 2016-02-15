@@ -5,7 +5,6 @@ use Symfony\Component\Templating\Helper\Helper as BaseHelper;
 
 class UserSecurityTemplatingHelper extends BaseHelper
 {
-
     protected $security;
 
     public function __construct($security)
@@ -15,7 +14,13 @@ class UserSecurityTemplatingHelper extends BaseHelper
 
     public function isLoggedIn()
     {
-        return $this->userSecurity->isLoggedIn();
+        return $this->security->isLoggedIn();
+    }
+
+    public function getUserLevel()
+    {
+        $user = $this->security->getUser();
+        return $user->getUserLevelId();
     }
 
     public function getName()
@@ -27,5 +32,4 @@ class UserSecurityTemplatingHelper extends BaseHelper
     {
         return call_user_func_array(array($this->userSecurity, $name), $args);
     }
-
 }
