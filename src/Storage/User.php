@@ -201,12 +201,15 @@ class User extends BaseStorage
     /**
      * Create a user record
      *
-     * @param  UserEntity $user
+     * @param  array $user
      * @return integer
      */
-    public function create(UserEntity $user)
+    public function create(array $userData)
     {
-        return $this->ds->insert($this->meta_data['table'], $user->toInsertArray());
+        // Override the plaintext pass with the encrypted one
+        $userData['password'] = $this->saltPass($userData['salt'], $configSalt, $userData['password']);
+
+        return $this->ds->insert($this->meta_data['table'], $userData);
     }
 
     /**

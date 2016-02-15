@@ -80,24 +80,94 @@ class Auth extends SharedController
         // Lets populate the session with the user's auth information
         $security->login(new UserEntity($userEntity));
 
-        // Login Successful.
+        // Login Successful
         $this->setFlash('success', 'Login Successful');
         return $this->redirectToRoute($this->getService('auth.security')->getRedirectRoute());
+    }
+
+    public function signupsaveAction(Request $request)
+    {
+        $errors        = array();
+        $requiredKeys  = array(
+            'userFirstName',
+            'userLastName',
+            'userEmail',
+            'userPassword',
+            'userConfirmPassword',
+            'userType'
+        );
+        $missingFields = array();
+        $config        = $this->getConfig();
+
+        // Check for missing fields, or fields being empty.
+        foreach ($requiredKeys as $field) {
+            if (!$request->has($field) || trim($request->get($field)) == '') {
+                $missingFields[] = $field;
+            }
+        }
+
+        // If any fields were missing, inform the client
+        if (!empty($missingFields)) {
+            $errors[] = 'Some required fields were blank. Please re-evaluate your input and try again.';
+            return $this->render('AuthModule:auth:signup.html.php', compact('errors'));
+        }
+
+        // Check if the user's passwords do not match
+        if ($post['userPassword'] !== $post['userConfirmPassword']) {
+            $errors[] = 'Passwords do not match.';
+            return $this->render('UserModule:auth:signup.html.php', compact('errors'));
+        }
+
+        // Check if the user's email address already exists
+        if ($userStorage->existsByEmail($post['userEmail'])) {
+            $errors[] = 'Email address already exists.';
+            return $this->render('UserModule:auth:signup.html.php', compact('errors'));
+        }
+
+        // Prepare user array for insertion
+        $user = array(
+            'email'     => $post['userEmail'],
+            'firstname' => $post['userFirstName'],
+            'lastname'  => $post['userLastName'],
+            'password'  => $post['userPassword'],
+            'salt'      => base64_encode(openssl_random_pseudo_bytes(16))
+        );
+
+        // Create the user
+        $newUserID = $this->getService('auth.user.storage')->create($user, $config['authSalt']);
+
+        // Generate sha1() based activation code
+        $activationCode = sha1(openssl_random_pseudo_bytes(16));
+
+        // Insert an activation token for this user
+        $this->getService('auth.user.activation.storage')->create(array(
+            'user_id'   => $newUserID,
+            'token'     => $activationCode,
+            'used'      => '0',
+            'date_used' => date('Y-m-array         ));
+
+        // Send the user's activation email
+        $this->sendActivationEmail($user, $activationCode);
+
+        // Successful registration
+        return $this->render('UserModule:auth:signupsuccess.html.php');
     }
 
     protected function renderJsonResponse($response)
     {
         $this->getRequest()->headers->set('Content-Type', 'application/json');
 
-        return json_encode($response);
-    }
-
-    public function forgotpwsendAction()
+        return email_encode($response);
+    }ublic function forgotpwsendAction()
     {
-        // Check to see if user is logged in
-        $this->loggedInCheck();
+        // Check to $this->getService('auth.email.helper') if user is logged in
+        $this->
+        oggedInCheck();
 
-        $response = array('status' => 'E_UNKNOWN');
+        $response =
+        y('status' =>
+
+            'E_UNKNOWN');
         $email    = $this->post('email');
         $us       = $this->getUserStorage();
 
@@ -245,7 +315,7 @@ class Auth extends SharedController
     /**
     * Send the user's activation email to them.
     *
-    * @param \AuthModule\Entity\User $toUser
+    * @param array $toUser
     * @param string $activationCode
     */
     protected function sendActivationEmail($toUser, $activationCode)
@@ -255,18 +325,21 @@ class Auth extends SharedController
 
         $fromUser = new UserEntity($this->getEmailConfig());
         $toUser   = new UserEntity($toUser);
+        $config   = $this->getConfig();
 
         // Generate the activation link from the route key
         $activationLink = $this->generateUrl('User_Activate', array('token' => $activationCode), true);
 
         // Get the activation email content, it's in a view file.
-        $emailContent = $this->render('AuthModule:auth:signupemail.html.php', compact('toUser', 'activationLink'));
+        $emailContent = $this->render('AuthModule:email:signupemail.html.php', compact('toUser', 'activationLink'));
 
-        // Send the activation email to the user
-        $helper = new \AuthModule\Classes\Email();
-        $config = $this->getConfig();
-        $helper->sendEmail($fromUser, $toUser, $config['signupEmail']['subject'], $emailContent);
-
+        // Send activation email
+        $this->getService('auth.email.helper')->sendEmail(
+            $fromUser,
+            $toUser,
+            $config['signupEmail']['subject'],
+            $emailContent
+        );
     }
 
     /**

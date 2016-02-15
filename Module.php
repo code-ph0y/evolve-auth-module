@@ -89,14 +89,18 @@ class Module extends AbstractModule
                 return $us;
             },
 
+            'auth.security.templating.helper' => function ($sm) {
+                return new \AuthModule\Classes\SecurityTemplatingHelper($sm->get('auth.security'));
+            },
+
             'auth.login.helper' => function ($sm) {
                 $us = new \AuthModule\Classes\Security();
                 $us->setSession($sm->get('session'));
                 return $us;
             },
 
-            'auth.security.templating.helper' => function ($sm) {
-                return new \AuthModule\Classes\SecurityTemplatingHelper($sm->get('auth.security'));
+            'auth.email.helper' => function ($sm) {
+                return new \AuthModule\Classes\Email();
             }
 
         ));
