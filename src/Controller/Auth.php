@@ -144,9 +144,9 @@ class Auth extends SharedController
             'user_id'   => $newUserID,
             'token'     => $activationCode,
             'used'      => '0',
-            'date_used' => date('Y-m-array         ));
+            'date_used' => date('Y-m-d', strtotime('now'));
 
-        // Send the user's activation email
+        // Send the users activation email
         $this->sendActivationEmail($user, $activationCode);
 
         // Successful registration
