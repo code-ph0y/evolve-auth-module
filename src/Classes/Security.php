@@ -50,6 +50,7 @@ class Security
 
     public function getUser()
     {
+        
         if ($this->user !== null) {
             return $this->user;
         }

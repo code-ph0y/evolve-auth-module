@@ -43,7 +43,7 @@ class Auth extends SharedController
 
     public function logoutAction()
     {
-        $this->getService('user.security')->logout();
+        $this->getService('auth.security')->logout();
         return $this->redirectToRoute('Homepage');
     }
 
@@ -139,12 +139,15 @@ class Auth extends SharedController
         // Generate sha1() based activation code
         $activationCode = sha1(openssl_random_pseudo_bytes(16));
 
-        // Insert an activation token for this user
-        $this->getService('auth.user.activation.storage')->create(array(
+        $activation = array(
             'user_id'   => $newUserID,
             'token'     => $activationCode,
             'used'      => '0',
-            'date_used' => date('Y-m-d', strtotime('now'));
+            'date_used' => date('Y-m-d', strtotime('now'))
+        );
+
+        // Insert an activation token for this user
+        $this->getService('auth.user.activation.storage')->create($activation);
 
         // Send the users activation email
         $this->sendActivationEmail($user, $activationCode);
@@ -158,16 +161,13 @@ class Auth extends SharedController
         $this->getRequest()->headers->set('Content-Type', 'application/json');
 
         return email_encode($response);
-    }ublic function forgotpwsendAction()
+    }
+
+    public function forgotpwsendAction()
     {
         // Check to $this->getService('auth.email.helper') if user is logged in
-        $this->
-        oggedInCheck();
+        $this->loggedInCheck();
 
-        $response =
-        y('status' =>
-
-            'E_UNKNOWN');
         $email    = $this->post('email');
         $us       = $this->getUserStorage();
 
