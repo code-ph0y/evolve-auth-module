@@ -1,8 +1,8 @@
 <?php
-namespace UserModule\Storage;
+namespace AuthModule\Storage;
 
-use UserModule\Storage\Base as BaseStorage;
-use UserModule\Entity\UserForgotToken as UserForgotTokenEntity;
+use AuthModule\Storage\Base as BaseStorage;
+use AuthModule\Entity\UserForgotToken as UserForgotTokenEntity;
 
 class UserForgot extends BaseStorage
 {

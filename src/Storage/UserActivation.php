@@ -1,8 +1,8 @@
 <?php
-namespace UserModule\Storage;
+namespace AuthModule\Storage;
 
-use UserModule\Storage\Base as BaseStorage;
-use UserModule\Entity\User as UserEntity;
+use AuthModule\Storage\Base as BaseStorage;
+use AuthModule\Entity\User as UserEntity;
 
 class UserActivation extends BaseStorage
 {
@@ -13,27 +13,27 @@ class UserActivation extends BaseStorage
         'fetchMode' => \PDO::FETCH_ASSOC
     );
 
-    public function create(array $insertData)
+    public function create(array $data)
     {
-        return parent::insert($insertData);
+        return $this->ds->insert($this->meta_data['table'], $data);
     }
 
     /**
      * Check if the user_id is activated or not
      *
-     * @param $userID
+     * @param $user_id
      * @return bool
      */
-    public function isActivated($userID)
+    public function isActivated($user_id)
     {
         $row = $this->createQueryBuilder()
             ->select('count(id) as total')
-            ->from($this->getTableName(), 'uat')
+            ->from($this->meta_data['table'], 'uat')
             ->andWhere('uat.user_id = :user_id')
-            ->setParameter(':user_id', $userID)
+            ->setParameter(':user_id', $user_id)
             ->andWhere('uat.used = 1') // <-- Check if they have used/activated their token before.
             ->execute()
-            ->fetch($this->getFetchMode());
+            ->fetch($this->meta_data['fetchMode']);
 
         return $row['total'] > 0;
     }
@@ -41,19 +41,19 @@ class UserActivation extends BaseStorage
     /**
      * Check if the user has already been activated by their token.
      *
-     * @param  string   $token
+     * @param  string $token
      * @return boolean
      */
     public function isUserActivatedByToken($token)
     {
         $row = $this->createQueryBuilder()
               ->select('count(id) as total')
-              ->from($this->getTableName(), 'uat')
+              ->from($this->meta_data['table'], 'uat')
               ->andWhere('uat.token = :token')
               ->setParameter(':token', $token)
               ->andWhere('uat.used = 1') // <-- Check if they have used/activated their token before.
               ->execute()
-              ->fetch($this->getFetchMode());
+              ->fetch($this->meta_data['fetchMode']);
 
           return $row['total'] > 0;
     }
@@ -68,11 +68,11 @@ class UserActivation extends BaseStorage
     {
         $row = $this->createQueryBuilder()
               ->select('count(id) as total')
-              ->from($this->getTableName(), 'uat')
+              ->from($this->meta_data['table'], 'uat')
               ->andWhere('uat.token = :token')
               ->setParameter(':token', $token)
               ->execute()
-              ->fetch($this->getFetchMode());
+              ->fetch($this->meta_data['fetchMode']);
 
           return $row['total'] > 0;
     }
@@ -87,12 +87,12 @@ class UserActivation extends BaseStorage
     {
         $row = $this->createQueryBuilder()
               ->select('count(id) as total')
-              ->from($this->getTableName(), 'uat')
+              ->from($this->meta_data['table'], 'uat')
               ->andWhere('uat.token = :token')
               ->setParameter(':token', $token)
                 ->andWhere('uat.used = 1') // <-- Check if they have used/activated their token before.
               ->execute()
-              ->fetch($this->getFetchMode());
+              ->fetch($this->meta_data['fetchMode']);
 
         return $row['total'] > 0;
     }
@@ -108,11 +108,11 @@ class UserActivation extends BaseStorage
     {
         $row = $this->createQueryBuilder()
               ->select('uat.user_id')
-              ->from($this->getTableName(), 'uat')
+              ->from($this->meta_data['table'], 'uat')
               ->andWhere('uat.token = :token')
               ->setParameter(':token', $token)
               ->execute()
-              ->fetch($this->getFetchMode());
+              ->fetch($this->meta_data['fetchMode']);
 
         if ($row === false) {
             throw new \Exception('Unable to find user id by token: ' . $token);
