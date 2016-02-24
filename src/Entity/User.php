@@ -6,7 +6,6 @@ class User
 {
     protected $id;
     protected $user_level_id;
-    protected $username;
     protected $first_name;
     protected $last_name;
     protected $email;

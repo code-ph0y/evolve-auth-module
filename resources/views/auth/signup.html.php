@@ -33,7 +33,7 @@
         <div class="control-group">
             <label class="control-label" for="formFirstName">First Name <em>*</em></label>
             <div class="controls">
-                <input type="text" class="input-xlarge validate[required]" id="formFirstName" name="userFirstName">
+                <input type="text" class="input-xlarge validate[required]" id="formFirstName" name="userFirstName" value="<?php echo $user->getFirstName(); ?>" />
                 <span rel="formFirstName" class="help-inline"></span>
             </div>
         </div>
@@ -41,7 +41,7 @@
         <div class="control-group">
             <label class="control-label" for="formLastName">Last Name <em>*</em></label>
             <div class="controls">
-                <input type="text" class="input-xlarge validate[required]" id="formLastName" name="userLastName">
+                <input type="text" class="input-xlarge validate[required]" id="formLastName" name="userLastName" value="<?php echo $user->getLastName(); ?>" />
                 <span rel="formLastName" class="help-inline"></span>
             </div>
         </div>
@@ -49,7 +49,7 @@
         <div class="control-group">
             <label class="control-label" for="formEmail">Email Address <em>*</em></label>
             <div class="controls">
-                <input type="text" class="input-xlarge validate[required,custom[email]]" id="formEmail" name="userEmail">
+                <input type="text" class="input-xlarge validate[required,custom[email]]" id="formEmail" name="userEmail" value="<?php echo $user->getEmail(); ?>" />
                 <span rel="formEmail" class="help-inline"></span>
             </div>
         </div>
@@ -57,7 +57,7 @@
         <div class="control-group">
             <label class="control-label" for="formPassword">Password <em>*</em></label>
             <div class="controls">
-                <input type="text" class="input-xlarge validate[required]" id="formPassword" name="userPassword">
+                <input type="password" class="input-xlarge validate[required]" id="formPassword" name="userPassword" />
                 <span rel="formPassword" class="help-inline"></span>
             </div>
         </div>
@@ -65,7 +65,7 @@
         <div class="control-group">
             <label class="control-label" for="formConfirmPassword">Comfirm Password <em>*</em></label>
             <div class="controls">
-                <input type="text" class="input-xlarge validate[required,equals[userPassword]]" id="formConfirmPassword" name="userConfirmPassword">
+                <input type="password" class="input-xlarge validate[required,equals[userPassword]]" id="formConfirmPassword" name="userConfirmPassword" />
                 <span rel="formConfirmPassword" class="help-inline"></span>
             </div>
         </div>
@@ -74,7 +74,7 @@
             <div>
                 <button class="btn btn-info" type="submit"><i class="icon-ok bigger-110"></i>Submit</button>
                 &nbsp; &nbsp; &nbsp;
-                <button class="btn" type="reset"><i class="icon-undo bigger-110"></i>Reset</button>
+                <button class="btn btn-default" type="reset"><i class="icon-undo bigger-110"></i>Reset</button>
             </div>
         </div>
     </form>

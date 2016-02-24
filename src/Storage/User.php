@@ -14,6 +14,27 @@ class User extends BaseStorage
     );
 
     /**
+     * Get a blank user enitity
+     *
+     * @return mixed
+     */
+    public function getBlankEntity()
+    {
+        return new UserEntity();
+    }
+
+    /**
+     * Make an entity
+     *
+     * @param  $user_data
+     * @return mixed
+     */
+    public function makeEntity($user_data)
+    {
+        return new UserEntity($user_data);
+    }
+
+    /**
      * Get a user entity by its ID
      *
      * @param $id
@@ -127,7 +148,7 @@ class User extends BaseStorage
      */
     public function existsByEmail($email)
     {
-        $row = $this->createQueryBuilder()
+        $row = $this->ds->createQueryBuilder()
             ->select('count(id) as total')
             ->from($this->meta_data['table'], 'u')
             ->andWhere('u.email = :email')
@@ -206,10 +227,8 @@ class User extends BaseStorage
      */
     public function create(array $userData)
     {
-        // Override the plaintext pass with the encrypted one
-        $userData['password'] = $this->saltPass($userData['salt'], $configSalt, $userData['password']);
-
-        return $this->ds->insert($this->meta_data['table'], $userData);
+        $this->ds->insert($this->meta_data['table'], $userData);
+        return $this->ds->lastInsertId();
     }
 
     /**
@@ -218,7 +237,8 @@ class User extends BaseStorage
      * @param  Array $rows
      * @return Array
      */
-    public function rowsToEntities($rows) {
+    public function rowsToEntities($rows)
+    {
         $ent = array();
 
         foreach ($rows as $r) {

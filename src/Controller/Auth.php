@@ -13,8 +13,9 @@ class Auth extends SharedController
     {
         // Check to see if user is logged in
         $this->loggedInCheck();
-
-        return $this->render('AuthModule:auth:signup.html.php');
+        // Get blank User Entity
+        $user = $this->getService('auth.user.storage')->getBlankEntity();
+        return $this->render('AuthModule:auth:signup.html.php', compact('user'));
     }
 
     public function loginAction()
@@ -87,54 +88,68 @@ class Auth extends SharedController
 
     public function signupsaveAction(Request $request)
     {
-        $errors        = array();
+        $post = $request->request->all();
+
+        $missingFields = array();
         $requiredKeys  = array(
             'userFirstName',
             'userLastName',
             'userEmail',
             'userPassword',
-            'userConfirmPassword',
-            'userType'
+            'userConfirmPassword'
         );
-        $missingFields = array();
+
+        // Prepare user
+        $user_array = array(
+            'email'         => $post['userEmail'],
+            'first_name'    => $post['userFirstName'],
+            'last_name'     => $post['userLastName'],
+            'user_level_id' => 1
+        );
+
         $config        = $this->getConfig();
+        $userStorage   = $this->getService('auth.user.storage');
 
         // Check for missing fields, or fields being empty.
         foreach ($requiredKeys as $field) {
-            if (!$request->has($field) || trim($request->get($field)) == '') {
+            if (!isset($post[$field]) || trim($post[$field]) == '') {
                 $missingFields[] = $field;
             }
         }
 
         // If any fields were missing, inform the client
         if (!empty($missingFields)) {
-            $errors[] = 'Some required fields were blank. Please re-evaluate your input and try again.';
-            return $this->render('AuthModule:auth:signup.html.php', compact('errors'));
+            $user = $this->getService('auth.user.storage')->makeEntity($user_array);
+            $this->setFlash('danger', 'Some required fields were blank. Please re-evaluate your input and try again.');
+            return $this->render('AuthModule:auth:signup.html.php', compact('user'));
         }
 
         // Check if the user's passwords do not match
         if ($post['userPassword'] !== $post['userConfirmPassword']) {
-            $errors[] = 'Passwords do not match.';
-            return $this->render('UserModule:auth:signup.html.php', compact('errors'));
+            $user = $userStorage->makeEntity($user_array);
+            $this->setFlash('danger', 'Passwords do not match. Please try again.');
+            return $this->render('AuthModule:auth:signup.html.php', compact('user'));
         }
 
         // Check if the user's email address already exists
         if ($userStorage->existsByEmail($post['userEmail'])) {
-            $errors[] = 'Email address already exists.';
-            return $this->render('UserModule:auth:signup.html.php', compact('errors'));
+            $user = $userStorage->makeEntity($user_array);
+            $this->setFlash('danger', 'Email address already exists.');
+            return $this->render('AuthModule:auth:signup.html.php', compact('user'));
         }
 
-        // Prepare user array for insertion
-        $user = array(
-            'email'     => $post['userEmail'],
-            'firstname' => $post['userFirstName'],
-            'lastname'  => $post['userLastName'],
-            'password'  => $post['userPassword'],
-            'salt'      => base64_encode(openssl_random_pseudo_bytes(16))
+        $user_array['salt'] = $this->getService('auth.security')->generateSalt();
+
+        $user_array['password'] = $this->getService('auth.security')->saltPass(
+            $user_array['salt'],
+            $config['authSalt'],
+            $post['userPassword']
         );
 
+        $user_array['blocked'] = 0;
+
         // Create the user
-        $newUserID = $this->getService('auth.user.storage')->create($user, $config['authSalt']);
+        $newUserID = $userStorage->create($user_array);
 
         // Generate sha1() based activation code
         $activationCode = sha1(openssl_random_pseudo_bytes(16));
@@ -143,17 +158,19 @@ class Auth extends SharedController
             'user_id'   => $newUserID,
             'token'     => $activationCode,
             'used'      => '0',
-            'date_used' => date('Y-m-d', strtotime('now'))
+            'date_used' => date('Y-m-d H:i:s', strtotime('now'))
         );
 
         // Insert an activation token for this user
         $this->getService('auth.user.activation.storage')->create($activation);
 
         // Send the users activation email
-        $this->sendActivationEmail($user, $activationCode);
+        // @todo : Get email system working
+        //$this->sendActivationEmail($user, $activationCode);
 
         // Successful registration
-        return $this->render('UserModule:auth:signupsuccess.html.php');
+        $fromEmail = $user_array['email'];
+        return $this->render('AuthModule:auth:signupsuccess.html.php', compact('fromEmail'));
     }
 
     protected function renderJsonResponse($response)
