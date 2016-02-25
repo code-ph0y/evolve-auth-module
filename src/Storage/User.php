@@ -247,4 +247,34 @@ class User extends BaseStorage
 
         return $ent;
     }
+
+    /**
+    * Check the authentication fields to make sure things auth properly
+    *
+    * @param string $email
+    * @param string $password
+    * @param string $configSalt
+    * @return boolean
+    */
+    public function checkAuth($email, $password, $configSalt)
+    {
+        $user = $this->findByEmail($email);
+
+        if (empty($user)) {
+            return false;
+        }
+
+        $encPass = $this->saltPass($user['salt'], $configSalt, $password);
+        $row = $this->_conn->createQueryBuilder()
+            ->select('count(id) as total')
+            ->from($this->getTableName(), 'u')
+            ->andWhere('u.email = :email')
+            ->andWhere('u.password = :password')
+            ->setParameter(':email', $email)
+            ->setParameter(':password', $encPass)
+            ->execute()
+            ->fetch($this->getFetchMode());
+
+        return $row['total'] > 0;
+    }
 }
