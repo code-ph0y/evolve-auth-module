@@ -71,9 +71,10 @@ class User extends BaseStorage
      */
     public function findByEmail($email)
     {
-        return $this->createQueryBuilder()
-            ->select('u.*')
+        return $this->ds->createQueryBuilder()
+            ->select('u.*, ul.title AS level_name')
             ->from($this->meta_data['table'], 'u')
+            ->leftJoin('u', 'user_level', 'ul', 'u.user_level_id = ul.id')
             ->andWhere('u.email = :email')->setParameter(':email', $email)
             ->execute()
             ->fetch($this->meta_data['fetchMode']);
@@ -252,28 +253,20 @@ class User extends BaseStorage
     * Check the authentication fields to make sure things auth properly
     *
     * @param string $email
-    * @param string $password
-    * @param string $configSalt
+    * @param string $encPassword
     * @return boolean
     */
-    public function checkAuth($email, $password, $configSalt)
+    public function checkAuth($email, $encPassword)
     {
-        $user = $this->findByEmail($email);
-
-        if (empty($user)) {
-            return false;
-        }
-
-        $encPass = $this->saltPass($user['salt'], $configSalt, $password);
-        $row = $this->_conn->createQueryBuilder()
+        $row = $this->ds->createQueryBuilder()
             ->select('count(id) as total')
-            ->from($this->getTableName(), 'u')
+            ->from($this->meta_data['table'], 'u')
             ->andWhere('u.email = :email')
             ->andWhere('u.password = :password')
             ->setParameter(':email', $email)
-            ->setParameter(':password', $encPass)
+            ->setParameter(':password', $encPassword)
             ->execute()
-            ->fetch($this->getFetchMode());
+            ->fetch($this->meta_data['fetchMode']);
 
         return $row['total'] > 0;
     }

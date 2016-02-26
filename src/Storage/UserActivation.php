@@ -26,7 +26,7 @@ class UserActivation extends BaseStorage
      */
     public function isActivated($user_id)
     {
-        $row = $this->createQueryBuilder()
+        $row = $this->ds->createQueryBuilder()
             ->select('count(id) as total')
             ->from($this->meta_data['table'], 'uat')
             ->andWhere('uat.user_id = :user_id')

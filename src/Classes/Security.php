@@ -50,37 +50,35 @@ class Security
 
     public function getUser()
     {
-
-        if ($this->user !== null) {
-            return $this->user;
+        if ($this->session->has('ppiAuthUser')) {
+            $this->user = $this->session->get('ppiAuthUser');
         }
 
-        $this->user = $this->session->get('ppiAuthUser');
         return $this->user;
     }
 
     public function getRedirectRoute()
     {
         $redirectRoute = 'Guest';
-        if ($this->isLoggedIn()) {
-            $config = $this->getConfig();
-            $user = $this->getUser();
-            $level_name = $user->getLevelName();
+        $config = $this->getConfig();
+        $user = $this->getUser();
+        $level_name = $user->getLevelName();
 
-            if (isset($config['redirectRoutes'][$level_name])) {
-                $redirectRoute = $config['redirectRoutes'][$level_name];
-            } else {
-                throw new Exception('Redirect route not found');
-            }
+        if (isset($config['redirectRoutes'][$level_name])) {
+            $redirectRoute = $config['redirectRoutes'][$level_name];
+        } else {
+            throw new \Exception('Redirect route not found');
         }
+
         return $redirectRoute;
     }
 
-    public function checkAuth($email, $password)
+    public function checkAuth($email, $password, $userStorage)
     {
-        return $this->userStorage->checkAuth($email, $password, $this->config['authSalt']);
+        $user = $this->userStorage->findByEmail($email);
+        $encPass = $this->saltPass($user['salt'], $this->config['authSalt'], $password);
+        return $this->userStorage->checkAuth($email, $encPass);
     }
-
 
     /**
     * Salt the password

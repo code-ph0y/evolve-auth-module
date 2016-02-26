@@ -45,13 +45,21 @@ class Auth extends SharedController
     public function logoutAction()
     {
         $this->getService('auth.security')->logout();
+        $this->setFlash('info', 'You are now logged out.');
         return $this->redirectToRoute('Homepage');
     }
 
-    public function logincheckAction(Request $request, $userEmail, $userPassword)
+    public function logincheckAction(Request $request)
     {
         // Check to see if user is logged in
         $this->loggedInCheck();
+
+        // Get Login Post values
+        $userEmail    = $request->get('userEmail');
+        $userPassword = $request->get('userPassword');
+
+        // Get Application config
+        $config = $this->getConfig();
 
         // Get security helper
         $security = $this->getService('auth.security');
@@ -63,7 +71,7 @@ class Auth extends SharedController
         }
 
         // Lets try to authenticate the user
-        if (!$security->checkAuth($userEmail, $userPassword)) {
+        if (!$security->checkAuth($userEmail, $userPassword, $security, $config)) {
             $this->setFlash('danger', 'Login Invalid');
             return $this->render('AuthModule:auth:login.html.php');
         }
@@ -78,11 +86,11 @@ class Auth extends SharedController
         }
 
         // Lets populate the session with the user's auth information
-        $security->login(new UserEntity($userEntity));
+        $security->login($userEntity);
 
         // Login Successful
         $this->setFlash('success', 'Login Successful');
-        return $this->redirectToRoute($this->getService('auth.security')->getRedirectRoute());
+        return $this->redirectToRoute($this->getService('auth.security')->getRedirectRoute($userEntity));
     }
 
     public function signupsaveAction(Request $request)
