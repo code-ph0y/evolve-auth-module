@@ -13,9 +13,9 @@ class UserForgot extends BaseStorage
         'fetchMode' => \PDO::FETCH_ASSOC
     );
 
-    public function create(array $insertData)
+    public function create(array $data)
     {
-        return parent::insert($insertData);
+        return $this->ds->insert($this->meta_data['table'], $data);
     }
 
     /**
@@ -26,27 +26,27 @@ class UserForgot extends BaseStorage
      */
     public function isUserActivatedByToken($token)
     {
-        $row = $this->createQueryBuilder()
+        $row = $this->ds->createQueryBuilder()
               ->select('count(id) as total')
-              ->from($this->getTableName(), 'uat')
+              ->from($this->meta_data['table'], 'uat')
               ->andWhere('uat.token = :token')
               ->setParameter(':token', $token)
               ->andWhere('uat.used = 1') // <-- Check if they have used/activated their token before.
               ->execute()
-              ->fetch($this->getFetchMode());
+              ->fetch($this->meta_data['fetchMode']);
 
           return $row['total'] > 0;
     }
 
     public function getByToken($token)
     {
-        $row = $this->createQueryBuilder()
+        $row = $this->ds->createQueryBuilder()
             ->select('uft.*')
-            ->from($this->getTableName(), 'uft')
+            ->from($this->meta_data['table'], 'uft')
             ->andWhere('uft.token = :token')
             ->setParameter(':token', $token)
             ->execute()
-            ->fetch($this->getFetchMode());
+            ->fetch($this->meta_data['fetchMode']);
 
         if ($row === false) {
             throw new \Exception('Unable to find user token record from token: ' . $token);
@@ -63,7 +63,8 @@ class UserForgot extends BaseStorage
     public function useToken($token)
     {
         $dateTime = new \DateTime();
-        $this->update(
+        $this->ds->update(
+            $this->meta_data['table'],
             array(
                 'used'      => 1,
                 'date_used' => $dateTime->format("Y-m-d H:i:s")

@@ -43,5 +43,3 @@ AuthModule_Forgot_Password_Check:
 AuthModule_Forgot_Password_Save:
     pattern: /forgotpwsave
     defaults: { _controller: "AuthModule:Auth:forgotpwsave"}
-    requirements:
-        _method: POST

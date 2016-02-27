@@ -1,7 +1,7 @@
 <?php $view->extend('::base.html.php'); ?>
 
 <?php $view['slots']->start('include_css') ?>
-    <link rel="stylesheet" href="<?php echo $view['assets']->getUrl('user/css/signup.css'); ?>" />
+    <link rel="stylesheet" href="<?php echo $view['assets']->getUrl('modules/authmodule/css/signup.css'); ?>" />
 <?php $view['slots']->stop(); ?>
 
 <section class="content clearfix well">
@@ -10,7 +10,7 @@
         <div class="text">
             <h4>Thank you for registering at <?php echo $registeringAt; ?></h4>
             <p>Your account has successfully been activated. Please use the form on your right to log in.</p>
-            <p><a href="<?php echo $view['router']->generate('AuthModule_Login'); ?>" class="btn btn-large">Proceed to Login</a></p>
+            <p><a href="<?php echo $view['router']->generate('AuthModule_Login'); ?>" class="btn btn-success">Proceed to Login</a></p>
         </div>
     </div>
 </section>

@@ -1,9 +1,8 @@
 jQuery(document).ready(function($) {
-
 	$('#user-login').find('form').validationEngine({
 		scroll: false
 	});
-	
+
 	$('#user-login').find('form').bind("jqv.field.result", function(event, field, errorFound, promptText) {
 		if(errorFound){
 			field.parent().parent().removeClass('success').addClass('error');
@@ -13,5 +12,4 @@ jQuery(document).ready(function($) {
 			$('span[rel="' + field.attr('id') + '"]').html('');
 		}
 	});
-	
 });

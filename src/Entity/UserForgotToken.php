@@ -1,6 +1,6 @@
 <?php
 
-namespace UserModule\Entity;
+namespace AuthModule\Entity;
 
 class UserForgotToken
 {

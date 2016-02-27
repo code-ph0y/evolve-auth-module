@@ -46,7 +46,7 @@ class UserActivation extends BaseStorage
      */
     public function isUserActivatedByToken($token)
     {
-        $row = $this->createQueryBuilder()
+        $row = $this->ds->createQueryBuilder()
               ->select('count(id) as total')
               ->from($this->meta_data['table'], 'uat')
               ->andWhere('uat.token = :token')
@@ -66,7 +66,7 @@ class UserActivation extends BaseStorage
      */
     public function existsByToken($token)
     {
-        $row = $this->createQueryBuilder()
+        $row = $this->ds->createQueryBuilder()
               ->select('count(id) as total')
               ->from($this->meta_data['table'], 'uat')
               ->andWhere('uat.token = :token')
@@ -85,12 +85,12 @@ class UserActivation extends BaseStorage
      */
     public function tokenHasBeenUsed($token)
     {
-        $row = $this->createQueryBuilder()
+        $row = $this->ds->createQueryBuilder()
               ->select('count(id) as total')
               ->from($this->meta_data['table'], 'uat')
               ->andWhere('uat.token = :token')
               ->setParameter(':token', $token)
-                ->andWhere('uat.used = 1') // <-- Check if they have used/activated their token before.
+              ->andWhere('uat.used = 1') // <-- Check if they have used/activated their token before.
               ->execute()
               ->fetch($this->meta_data['fetchMode']);
 
@@ -106,7 +106,7 @@ class UserActivation extends BaseStorage
      */
     public function getUserIDFromToken($token)
     {
-        $row = $this->createQueryBuilder()
+        $row = $this->ds->createQueryBuilder()
               ->select('uat.user_id')
               ->from($this->meta_data['table'], 'uat')
               ->andWhere('uat.token = :token')
@@ -129,12 +129,13 @@ class UserActivation extends BaseStorage
     public function activateUserByToken($token)
     {
         $dateTime = new \DateTime();
-        $this->update(
+        $this->ds->update(
+            $this->meta_data['table'],
             array(
                 'used'      => 1,
                 'date_used' => $dateTime->format("Y-m-d H:i:s")
             ),
-            array('token' => $token)
+            array('token'   => $token)
         );
     }
 }

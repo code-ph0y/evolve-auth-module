@@ -9,6 +9,7 @@ class User
     protected $first_name;
     protected $last_name;
     protected $email;
+    protected $salt;
 
     // Virtual
     protected $level_name;
@@ -112,5 +113,15 @@ class User
     public function getFullName()
     {
         return $this->first_name . ' ' . $this->last_name;
+    }
+
+    /**
+     * Get the value of Salt
+     *
+     * @return mixed
+     */
+    public function getSalt()
+    {
+        return $this->salt;
     }
 }

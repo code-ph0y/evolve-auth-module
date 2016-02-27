@@ -1,13 +1,13 @@
 <?php $view->extend('::base.html.php'); ?>
 
 <?php $view['slots']->start('include_css') ?>
-    <link rel="stylesheet" href="<?php echo $view['assets']->getUrl('auth_module/css/signup.css') ?>" />
+    <link rel="stylesheet" href="<?php echo $view['assets']->getUrl('modules/authmodule/css/signup.css') ?>" />
 <?php $view['slots']->stop(); ?>
 
 <?php $view['slots']->start('include_js_body') ?>
-    <script src="<?php echo $view['assets']->getUrl('auth_module/js/jquery.validationEngine-en.js') ?>"></script>
-    <script src="<?php echo $view['assets']->getUrl('auth_module/js/jquery.validationEngine.js') ?>"></script>
-    <script src="<?php echo $view['assets']->getUrl('auth_module/js/signup.js') ?>"></script>
+    <script src="<?php echo $view['assets']->getUrl('modules/authmodule/js/jquery.validationEngine-en.js') ?>"></script>
+    <script src="<?php echo $view['assets']->getUrl('modules/authmodule/js/jquery.validationEngine.js') ?>"></script>
+    <script src="<?php echo $view['assets']->getUrl('modules/authmodule/js/signup.js') ?>"></script>
 <?php $view['slots']->stop(); ?>
 
 <section class="sign-up-panel clearfix">

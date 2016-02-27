@@ -41,9 +41,9 @@ class User extends BaseStorage
      * @return mixed
      * @throws \Exception
      */
-    public function getByID($id)
+    public function getById($id)
     {
-        $row = $this->find($id);
+        $row = $this->findById($id);
 
         if ($row === false) {
             throw new \Exception('Unable to obtain user row for id: ' . $id);
@@ -58,9 +58,15 @@ class User extends BaseStorage
      * @param $id
      * @return mixed
      */
-    public function findByID($id)
+    public function findById($id)
     {
-        return $this->find($id);
+        return $row = $this->ds->createQueryBuilder()
+            ->select('u.*, ul.title AS level_name')
+            ->from($this->meta_data['table'], 'u')
+            ->leftJoin('u', 'user_level', 'ul', 'u.user_level_id = ul.id')
+            ->andWhere('u.id = :id')->setParameter(':id', $id)
+            ->execute()
+            ->fetch($this->meta_data['fetchMode']);
     }
 
     /**
@@ -230,6 +236,22 @@ class User extends BaseStorage
     {
         $this->ds->insert($this->meta_data['table'], $userData);
         return $this->ds->lastInsertId();
+    }
+
+    /**
+     * Update the users password
+     *
+     * @param integer $user_id
+     * @param integer $enc_password
+     * @return integer
+     */
+    public function updatePassword($user_id, $enc_password)
+    {
+        $this->ds->update(
+            $this->meta_data['table'],
+            array('password' => $enc_password),
+            array('id' => $user_id)
+        );
     }
 
     /**

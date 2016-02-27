@@ -31,7 +31,7 @@ class Auth extends SharedController
         // Check to see if user is logged in
         $this->loggedInCheck();
 
-        return $this->render('AuthModule:auth:signup.html.php');
+        return $this->render('AuthModule:auth:forgotpw.html.php');
     }
 
     public function forgotpwenterAction()
@@ -187,57 +187,62 @@ class Auth extends SharedController
         return email_encode($response);
     }
 
-    public function forgotpwsendAction()
+    public function forgotpwsendAction(Request $request)
     {
         // Check to $this->getService('auth.email.helper') if user is logged in
         $this->loggedInCheck();
 
-        $email    = $this->post('email');
-        $us       = $this->getUserStorage();
+        $email       = $request->get('userEmail');
+        $userStorage = $this->getService('auth.user.storage');
 
         // Check for missing field
         if (empty($email)) {
-            $response['status'] = 'E_MISSING_FIELD';
-            $response['error_value'] = 'email';
-            $this->renderJsonResponse($response);
+            $this->setFlash('danger', 'Email field was blank. Please enter email and try again.');
+            return $this->render('AuthModule:auth:forgotpw.html.php');
         }
 
         // Check if user record does not exist
-        if (!$us->existsByEmail($email)) {
-            $response['status'] = 'E_MISSING_RECORD';
-            $this->renderJsonResponse($response);
+        if (!$userStorage->existsByEmail($email)) {
+            $this->setFlash('danger', 'Email does not exist. Please enter valid email and try again.');
+            return $this->render('AuthModule:auth:forgotpw.html.php');
         }
 
-        $forgotUser  = $us->getByEmail($email);
+        $forgotUser  = $userStorage->getByEmail($email);
         $forgotToken = sha1(openssl_random_pseudo_bytes(16));
 
         // Insert a forgot token for this user
-        $this->getUserForgotStorage()->create(array(
-            'user_id' => $forgotUser->getID(),
-            'token'   => $forgotToken
+        $this->getService('auth.user.forgot.storage')->create(array(
+            'user_id'   => $forgotUser->getId(),
+            'token'     => $forgotToken,
+            'used'      => 0,
+            'date_used' => date('Y-m-d H:i:s', strtotime('now'))
         ));
 
         // Lets send the user forgotpw email
-        $this->sendForgotPWEmail($forgotUser, $forgotToken);
+        //@todo - Add email helper
+        //$this->sendForgotPWEmail($forgotUser, $forgotToken);
 
         // Successful response
-        $response['status'] = 'success';
-        $this->renderJsonResponse($response);
+        $this->setFlash(
+            'success',
+            'Your request has been received. You will receive an e-mail with instructions to change your password in the a few minutes.'
+        );
 
+        return $this->redirectToRoute('Homepage');
     }
 
-    public function forgotpwcheckAction()
+    public function forgotpwcheckAction(Request $request)
     {
         // Check to see if user is logged in
         $this->loggedInCheck();
 
-        $token = $this->getRouteParam('token');
-        $fs = $this->getUserForgotStorage();
+        $token             = $request->get('token');
+        $userForgotStorage = $this->getService('auth.user.forgot.storage');
 
         // If the user has not activated their token before, activate it!
-        if (!$fs->isUserActivatedByToken($token)) {
+        if (!$userForgotStorage->isUserActivatedByToken($token)) {
 
-            $fs->useToken($token);
+            $userForgotStorage->useToken($token);
 
             // Lets generate a CSRF token for the update password page.
             $csrf = sha1(openssl_random_pseudo_bytes(16));
@@ -248,17 +253,32 @@ class Auth extends SharedController
             return $this->render('AuthModule:auth:forgotpwenter.html.php', compact('csrf'));
         }
 
-        // redirect the user to the login page
-        $this->redirectToRoute('User_Signup');
+        // Redirect the user to the login page
+        return $this->redirectToRoute('User_Signup');
     }
 
-    public function forgotpwsaveAction()
+    public function forgotpwsaveAction(Request $request)
     {
         // Check to see if user is logged in
         $this->loggedInCheck();
 
-        $post          = $this->post();
-        $requiredKeys  = array('password', 'confirm_password', 'csrf');
+        // Get post variables
+        $post = $request->request->all();
+
+        // Get auth config
+        $config = $this->getConfig();
+
+        // Get user storage
+        $userStorage       = $this->getService('auth.user.storage');
+        // Get user forgot storage
+        $userForgotStorage = $this->getService('auth.user.forgot.storage');
+
+        // Required fields
+        $requiredKeys  = array(
+            'userPassword',
+            'userConfirmPassword',
+            'csrf'
+        );
 
         // Check for missing fields, or fields being empty.
         foreach ($requiredKeys as $field) {
@@ -269,41 +289,47 @@ class Auth extends SharedController
 
         // If any fields were missing, inform the client
         if (!empty($missingFields)) {
-            $response['status']       = 'E_MISSING_FIELD';
-            $response['error_value']  = implode(',', $missingFields);
-            $this->renderJsonResponse($response);
+            $csrf = $post['csrf'];
+            $this->setFlash('danger', 'Required fields were blank. Please re-evaluate your input and try again.');
+            return $this->render('AuthModule:auth:forgotpwenter.html.php', compact('csrf'));
         }
 
         // Check if both passwords match
-        if ($post['password'] !== $post['confirm_password']) {
-            $response['status'] = 'E_PASSWORD_MISMATCH';
-            $this->renderJsonResponse($response);
+        if ($post['userPassword'] !== $post['userConfirmPassword']) {
+            $csrf = $post['csrf'];
+            $this->setFlash('danger', 'Passwords did not match. Please re-evaluate your input and try again.');
+            return $this->render('AuthModule:auth:forgotpwenter.html.php', compact('csrf'));
         }
 
         // Check for csrf protection
-        $csrf = $this->session('forgotpw_csrf');
+        $csrf = $this->getSession()->get('forgotpw_csrf');
         if (empty($csrf) || $csrf !== $post['csrf']) {
-            $response['status'] = 'E_INVALID_CSRF';
-            $this->renderJsonResponse($response);
+            $this->setFlash('danger', 'CSRF value did not checkout!');
+            $this->redirectToRoute('Homepage');
         }
 
         // Get the user record out of the session token
-        $token = $this->session('forgotpw_token');
+        $token = $this->getSession()->get('forgotpw_token');
+
         if (empty($token)) {
-            $response['status'] = 'E_MISSING_TOKEN';
-            $this->renderJsonResponse($response);
+            $this->setFlash('danger', 'Forgot password token did not match.');
+            $this->redirectToRoute('Homepage');
         }
 
-        // Get user entity from the userID on the token row
-        $us = $this->getUserStorage();
-        $userEntity = $us->getByID($this->getUserForgotStorage()->getByToken($token)->getUserID());
+        $userEntity = $userStorage->getByID($userForgotStorage->getByToken($token)->getUserId());
 
-        // Update the user's password
-        $this->getUserStorage()->updatePassword(
-            $userEntity->getID(),
+        // Get new encrypted password
+
+        $encPassword = $this->getService('auth.security')->saltPass(
             $userEntity->getSalt(),
-            $this->getConfigSalt(),
-            $post['password']
+            $config['authSalt'],
+            $post['userPassword']
+        );
+
+        // Update user password
+        $userStorage->updatePassword(
+            $userEntity->getId(),
+            $encPassword
         );
 
         // Wipe session values clean
@@ -312,28 +338,33 @@ class Auth extends SharedController
         $session->remove('fogotpw_token');
 
         // Return successful response \o/
-        $response['status'] = 'success';
-        $this->renderJsonResponse($response);
-
+        $this->setFlash('success', 'Password changed successfully');
+        return $this->redirectToRoute('AuthModule_Login');
     }
 
     /**
       * Activation action. Active the user's account
       */
-    public function activateAction()
+    public function activateAction(Request $request)
     {
         // Check to see if user is logged in
         $this->loggedInCheck();
 
-        $token = $this->getRouteParam('token');
-        $uas = $this->getUserActivationStorage();
+        // Get token from post variable
+        $token = $request->get('token');
+
+        // Get config
+        $config = $this->getConfig();
+
+        // Get user activation storage
+        $userActivationStorage = $this->getService('auth.user.activation.storage');
 
         // If the user has not activated their token before, activate it!
-        if (!$uas->isUserActivatedByToken($token)) {
-            $uas->activateUser($token);
+        if (!$userActivationStorage->isUserActivatedByToken($token)) {
+            $userActivationStorage->activateUserByToken($token);
         }
-
-        return $this->render('AuthModule:auth:activate.html.php', compact('csrf'));
+        $registeringAt = $config['registeringAt'];
+        return $this->render('AuthModule:auth:activate.html.php', compact('registeringAt'));
     }
 
     /**
