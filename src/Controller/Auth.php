@@ -64,6 +64,9 @@ class Auth extends SharedController
         // Get security helper
         $security = $this->getService('auth.security');
 
+        // Get user storage
+        $userStorage = $this->getService('auth.user.storage');
+
         // Validate required fields
         if (trim($userEmail) == '' || trim($userPassword) == '') {
             $this->setFlash('danger', 'Email and Password are required fields');
@@ -71,13 +74,13 @@ class Auth extends SharedController
         }
 
         // Lets try to authenticate the user
-        if (!$security->checkAuth($userEmail, $userPassword, $security, $config)) {
+        if (!$security->checkAuth($userEmail, $userPassword, $userStorage)) {
             $this->setFlash('danger', 'Login Invalid');
             return $this->render('AuthModule:auth:login.html.php');
         }
 
         // Get user record
-        $userEntity = $this->getService('auth.user.storage')->getByEmail($userEmail);
+        $userEntity = $userStorage->getByEmail($userEmail);
 
         // Check if user is activated
         if (!$this->getService('auth.user.activation.storage')->isActivated($userEntity->getId())) {
