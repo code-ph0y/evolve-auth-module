@@ -58,9 +58,6 @@ class Auth extends SharedController
         $userEmail    = $request->get('userEmail');
         $userPassword = $request->get('userPassword');
 
-        // Get Application config
-        $config = $this->getConfig();
-
         // Get security helper
         $security = $this->getService('auth.security');
 
@@ -73,26 +70,14 @@ class Auth extends SharedController
             return $this->render('AuthModule:auth:login.html.php');
         }
 
+        // Lets try to authenticate the user
+        if (!$security->checkAuth($userEmail, $userPassword, $userStorage)) {
+            $this->setFlash('danger', 'Login Invalid');
+            return $this->render('AuthModule:auth:login.html.php');
+        }
+
         // Get user record
         $userEntity = $userStorage->getByEmail($userEmail);
-
-        if ($userEntity === false) {
-            $this->setFlash('danger', 'Login Invalid');
-            return $this->render('AuthModule:auth:login.html.php');
-        }
-
-        // Get encrypted password
-        $encPassword = $security->saltPass(
-            $userEntity->getSalt(),
-            $config['authSalt'],
-            $userPassword
-        );
-
-        // Lets try to authenticate the user
-        if (!$security->checkAuth($userEmail, $encPassword)) {
-            $this->setFlash('danger', 'Login Invalid');
-            return $this->render('AuthModule:auth:login.html.php');
-        }
 
         // Check if user is activated
         if (!$this->getService('auth.user.activation.storage')->isActivated($userEntity->getId())) {

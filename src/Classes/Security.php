@@ -76,6 +76,11 @@ class Security
     public function checkAuth($email, $password, $userStorage)
     {
         $user = $this->userStorage->findByEmail($email);
+
+        if ($user === false) {
+            return false;
+        }
+
         $encPass = $this->saltPass($user['salt'], $this->config['authSalt'], $password);
         return $this->userStorage->checkAuth($email, $encPass);
     }
