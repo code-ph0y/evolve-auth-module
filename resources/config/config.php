@@ -21,9 +21,9 @@ $config['emailFrom']     = 'noreply@myapplication.com';
 
 # ---- Email ----
 $config['emailConfig'] = array(
-    'firstname' => 'My',
-    'lastname'  => 'Application',
-    'email'     => 'noreply@myapplication.com'
+    'first_name' => 'My',
+    'last_name'  => 'Application',
+    'email'      => 'noreply@myapplication.com'
 );
 
 $config['signupEmail'] = array(

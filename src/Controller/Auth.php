@@ -2,7 +2,6 @@
 namespace AuthModule\Controller;
 
 use AuthModule\Controller\Shared as SharedController;
-use AuthModule\Entity\User as UserEntity;
 use PPI\Framework\Http\Request as Request;
 
 class Auth extends SharedController
@@ -126,7 +125,7 @@ class Auth extends SharedController
 
         // If any fields were missing, inform the client
         if (!empty($missingFields)) {
-            $user = $this->getService('auth.user.storage')->makeEntity($user_array);
+            $user = $userStorage->makeEntity($user_array);
             $this->setFlash('danger', 'Some required fields were blank. Please re-evaluate your input and try again.');
             return $this->render('AuthModule:auth:signup.html.php', compact('user'));
         }
@@ -158,6 +157,9 @@ class Auth extends SharedController
         // Create the user
         $newUserID = $userStorage->create($user_array);
 
+        // Get user entity for activation
+        $activationUser = $userStorage->getById($newUserID);
+
         // Generate sha1() based activation code
         $activationCode = sha1(openssl_random_pseudo_bytes(16));
 
@@ -172,8 +174,7 @@ class Auth extends SharedController
         $this->getService('auth.user.activation.storage')->create($activation);
 
         // Send the users activation email
-        // @todo : Get email system working
-        //$this->sendActivationEmail($user, $activationCode);
+        $this->sendActivationEmail($activationUser, $activationCode);
 
         // Successful registration
         $fromEmail = $user_array['email'];
@@ -219,8 +220,7 @@ class Auth extends SharedController
         ));
 
         // Lets send the user forgotpw email
-        //@todo - Add email helper
-        //$this->sendForgotPWEmail($forgotUser, $forgotToken);
+        $this->sendForgotPWEmail($forgotUser, $forgotToken);
 
         // Successful response
         $this->setFlash(
@@ -375,12 +375,14 @@ class Auth extends SharedController
     */
     protected function sendActivationEmail($toUser, $activationCode)
     {
-        // Check to see if user is logged in
-        $this->loggedInCheck();
+        // Get user storage
+        $userStorage = $this->getService('auth.user.storage');
 
-        $fromUser = new UserEntity($this->getEmailConfig());
-        $toUser   = new UserEntity($toUser);
-        $config   = $this->getConfig();
+        // Get config
+        $config = $this->getConfig();
+
+        // Get from user from config
+        $fromUser = $userStorage->makeEntity($config['emailConfig']);
 
         // Generate the activation link from the route key
         $activationLink = $this->generateUrl('User_Activate', array('token' => $activationCode), true);
@@ -406,14 +408,14 @@ class Auth extends SharedController
     */
     protected function sendForgotPWEmail($toUser, $forgotToken)
     {
-        // Check to see if user is logged in
-        $this->loggedInCheck();
+        // Get user storage
+        $userStorage = $this->getService('auth.user.storage');
 
-        // User entity preparation
-        $fromUser = new UserEntity($this->getEmailConfig());
-        if (is_array($toUser)) {
-            $toUser = new UserEntity($toUser);
-        }
+        // Get config
+        $config = $this->getConfig();
+
+        // Get from user from config
+        $fromUser = $userStorage->makeEntity($config['emailConfig']);
 
         // Generate the activation link from the route key
         $forgotLink = $this->generateUrl('User_Forgot_Password_Check', array('token' => $forgotToken), true);
@@ -421,9 +423,12 @@ class Auth extends SharedController
         // Get the activation email content, it's in a view file.
         $emailContent = $this->render('AuthModule:auth:forgotpwemail.html.php', compact('toUser', 'forgotLink'));
 
-        // Send the activation email to the user
-        $helper = new \AuthModule\Classes\Email();
-        $config = $this->getConfig();
-        $helper->sendEmail($fromUser, $toUser, $config['forgotEmail']['subject'], $emailContent);
+        // Send forgot email
+        $this->getService('auth.email.helper')->sendEmail(
+            $fromUser,
+            $toUser,
+            $config['forgotEmail']['subject'],
+            $emailContent
+        );
     }
 }
