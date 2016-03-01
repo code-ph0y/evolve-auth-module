@@ -1,0 +1,25 @@
+{
+    "name": "evolve/auth-module",
+    "description": "The Evolve App - Auth Module",
+    "license": "MIT",
+    "keywords": ["framework", "user"],
+    "type": "library",
+    "authors": [
+        {
+            "name": "Ross Moroney",
+            "email": "code.ph0y@googlemail.com"
+        }
+    ],
+    "require": {
+        "swiftmailer/swiftmailer": ">=4.2.0,<4.3-dev"
+    },
+    "autoload": {
+        "psr-4": {
+            "AuthModule\\": "src/",
+            "AuthModule\\Tests\\": "tests/"
+        },
+        "classmap": [
+            "./Module.php"
+        ]
+    }
+}
