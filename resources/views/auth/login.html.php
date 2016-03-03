@@ -1,7 +1,7 @@
 <?php $view->extend('::base.html.php'); ?>
 
 <?php $view['slots']->start('include_css') ?>
-    <link rel="stylesheet" href="<?php echo $view['assets']->getUrl('modules/authmodule/css/login.css'); ?>"/>
+    <link rel="stylesheet" href="<?php echo $view['assets']->getUrl('modules/auth/css/login.css'); ?>"/>
 <?php $view['slots']->stop(); ?>
 
 <div id="login-panel">

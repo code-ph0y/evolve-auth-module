@@ -1,8 +1,8 @@
 <?php $view->extend('::base.html.php'); ?>
 
 <?php $view['slots']->start('include_css') ?>
-    <link rel="stylesheet" href="<?php echo $view['assets']->getUrl('modules/authmodule/css/forgotpwenter.css') ?>" />
-    <link rel="stylesheet" href="<?php echo $view['assets']->getUrl('modules/authmodule/css/validationEngine.jquery.css') ?>" />
+    <link rel="stylesheet" href="<?php echo $view['assets']->getUrl('modules/auth/css/forgotpwenter.css') ?>" />
+    <link rel="stylesheet" href="<?php echo $view['assets']->getUrl('modules/auth/css/validationEngine.jquery.css') ?>" />
 <?php $view['slots']->stop() ?>
 
 <div id="forgotpw-enter-panel">

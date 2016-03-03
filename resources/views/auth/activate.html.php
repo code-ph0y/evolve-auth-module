@@ -1,7 +1,7 @@
 <?php $view->extend('::base.html.php'); ?>
 
 <?php $view['slots']->start('include_css') ?>
-    <link rel="stylesheet" href="<?php echo $view['assets']->getUrl('modules/authmodule/css/signup.css'); ?>" />
+    <link rel="stylesheet" href="<?php echo $view['assets']->getUrl('modules/auth/css/signup.css'); ?>" />
 <?php $view['slots']->stop(); ?>
 
 <section class="content clearfix well">
