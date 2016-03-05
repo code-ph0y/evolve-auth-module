@@ -59,6 +59,6 @@
     </form>
 </div>
 <?php $view['slots']->start('include_js_body'); ?>
-    <script src="<?php echo $view['assets']->getUrl('modules/authmodule/js/jquery.validationEngine.js'); ?>"></script>
-    <script src="<?php echo $view['assets']->getUrl('modules/authmodule/js/login.js'); ?>"></script>
+    <script src="<?php echo $view['assets']->getUrl('modules/auth/js/jquery.validationEngine.js'); ?>"></script>
+    <script src="<?php echo $view['assets']->getUrl('modules/auth/js/login.js'); ?>"></script>
 <?php $view['slots']->stop(); ?>
