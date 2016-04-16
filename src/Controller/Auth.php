@@ -80,7 +80,14 @@ class Auth extends SharedController
 
         // Check if user is activated
         if (!$this->getService('auth.user.activation.storage')->isActivated($userEntity->getId())) {
-            $this->setFlash('danger', 'Account not activated. Please check your email for activation instructions');
+            $this->setFlash('danger', 'Account not activated. Please check your email for activation instructions.');
+            return $this->render('AuthModule:auth:login.html.php');
+        }
+
+
+        // Check if user is blocked
+        if ($this->getService('auth.user.storage')->isBlocked($userEntity->getId())) {
+            $this->setFlash('danger', 'Account has been blocked. Please check site Administrator for more instructions.');
             return $this->render('AuthModule:auth:login.html.php');
         }
 

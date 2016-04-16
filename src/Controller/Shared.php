@@ -22,7 +22,7 @@ class Shared extends BaseController
      */
     protected function render($template, array $params = array(), array $options = array())
     {
-        $params['config'] = $this->getService('app.config');
+        $params['config'] = $this->getService('config');
         $options['helpers'][] = $this->getService('auth.security.templating.helper');
         return parent::render($template, $params, $options);
     }

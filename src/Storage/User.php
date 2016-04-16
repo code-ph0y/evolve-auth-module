@@ -292,4 +292,21 @@ class User extends BaseStorage
 
         return $row['total'] > 0;
     }
+
+    /**
+     * Check to see if a user has been blocked
+     *
+     * @param integer $user_id
+     * @return boolean
+     */
+    public function isBlocked($user_id)
+    {
+        $user = $this->getById($user_id);
+
+        if ($user->getBlocked() == 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

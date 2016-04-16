@@ -19,6 +19,17 @@ class UserActivation extends BaseStorage
     }
 
     /**
+     * Delete by user id
+     *
+     * @param integer user_id
+     * @return mixed
+     */
+    public function deleteByUserId($user_id)
+    {
+        return $this->ds->delete($this->meta_data['table'], array('user_id' => $user_id));
+    }
+
+    /**
      * Check if the user_id is activated or not
      *
      * @param $user_id

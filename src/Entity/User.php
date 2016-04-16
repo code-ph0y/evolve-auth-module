@@ -4,15 +4,16 @@ namespace AuthModule\Entity;
 
 class User
 {
-    protected $id;
-    protected $user_level_id;
-    protected $first_name;
-    protected $last_name;
-    protected $email;
-    protected $salt;
+    protected $id            = null;
+    protected $user_level_id = null;
+    protected $first_name    = null;
+    protected $last_name     = null;
+    protected $email         = null;
+    protected $salt          = null;
+    protected $blocked       = null;
 
     // Virtual
-    protected $level_name;
+    protected $level_name = null;
 
     public function __construct($data = array())
     {
@@ -123,5 +124,15 @@ class User
     public function getSalt()
     {
         return $this->salt;
+    }
+
+    /**
+     * Get the value of Blocked
+     *
+     * @return mixed
+     */
+    public function getBlocked()
+    {
+        return $this->blocked;
     }
 }

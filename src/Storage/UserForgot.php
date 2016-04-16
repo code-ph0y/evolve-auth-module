@@ -18,6 +18,18 @@ class UserForgot extends BaseStorage
         return $this->ds->insert($this->meta_data['table'], $data);
     }
 
+
+    /**
+     * Delete by user id
+     *
+     * @param integer user_id
+     * @return mixed
+     */
+    public function deleteByUserId($user_id)
+    {
+        return $this->ds->delete($this->meta_data['table'], array('user_id' => $user_id));
+    }
+
     /**
      * Check if the user has already used their forgot token
      *
